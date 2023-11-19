@@ -140,8 +140,24 @@ async function run() {
       res.send(result);
     })
 
-    app.patch('/menu/:id', verifyToken, verifyAdmin, async (req, res) =>{
-      
+    app.patch('/menu/:id', verifyToken, verifyAdmin, async (req, res) => {
+      const item = req.body;
+      console.log('item',item);
+      const id = req.params.id;
+      console.log('id',id);
+      const filter = { _id: id };
+      console.log('filter', filter);
+      const updateDoc = {
+        $set: {
+          name: item.name,
+          price: item.price,
+          recipe: item.recipe,
+          category: item.category,
+          image: item.image
+        }
+      }
+      const result = await menuCollection.updateOne(filter, updateDoc)
+      res.send(result);
     })
 
     app.delete('/menu/:id', verifyToken, verifyAdmin, async (req, res) => {
