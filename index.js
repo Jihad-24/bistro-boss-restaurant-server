@@ -150,11 +150,11 @@ async function run() {
 
     app.patch('/menu/:id', verifyToken, verifyAdmin, async (req, res) => {
       const item = req.body;
-      console.log('item', item);
+      // console.log('item', item);
       const id = req.params.id;
-      console.log('id', id);
+      // console.log('id', id);
       const filter = { _id: id };
-      console.log('filter', filter);
+      // console.log('filter', filter);
       const updateDoc = {
         $set: {
           name: item.name,
@@ -206,7 +206,7 @@ async function run() {
     app.post('/create-payment-intent', async (req, res) => {
       const { price } = req.body;
       const amount = parseInt(price * 100);
-      console.log('amount inside the intent', amount);
+      // console.log('amount inside the intent', amount);
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
         currency: 'usd',
@@ -231,7 +231,7 @@ async function run() {
       const payment = req.body;
       const paymentResult = await paymentCollection.insertOne(payment);
       //  carefully delete each item from the cart
-      console.log('payment info', payment);
+      // console.log('payment info', payment);
       const query = {
         _id: {
           $in: payment.cartIds.map(id => new ObjectId(id))
@@ -242,8 +242,8 @@ async function run() {
     })
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    // await client.db("admin").command({ ping: 1 });
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
