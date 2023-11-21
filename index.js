@@ -44,12 +44,12 @@ async function run() {
     const verifyToken = (req, res, next) => {
       // console.log("inside verify token", req.headers.authorization);
       if (!req.headers.authorization) {
-        res.status(401).send({ message: 'unauthorized access' })
+        return res.status(401).send({ message: 'unauthorized access' })
       }
       const token = req.headers.authorization.split(' ')[1];
       jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
         if (err) {
-          res.status(401).send({ message: 'unauthorized access' })
+          return res.status(401).send({ message: 'unauthorized access' })
         }
         req.decoded = decoded;
         next();
@@ -75,7 +75,7 @@ async function run() {
     })
 
     app.get('/users/admin/:email', verifyToken, async (req, res) => {
-      const email = req.params.email;
+      const email = req?.params?.email;
       if (email !== req.decoded.email) {
         return res.status(403).send({ message: 'forbiddien access' })
       }
@@ -235,9 +235,45 @@ async function run() {
       res.send({ paymentResult, deleteReasult })
     })
 
+    // stats or analytics
+    app.get('/admin-stats', verifyToken, verifyAdmin, async (req, res) => {
+      const users = await userCollection.estimatedDocumentCount();
+      const menuItems = await menuCollection.estimatedDocumentCount();
+      const orders = await paymentCollection.estimatedDocumentCount();
+
+      // this is not the best way
+      // const payments = await paymentCollection.find().toArray();
+      // const revenue = await payments.reduce((total, payment) => total + payment.price, 0);
+      const result = await paymentCollection.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalRevenue: {
+              $sum: '$price'
+            }
+          }
+        }
+      ]).toArray();
+
+      const revenue = result.length > 0 ? result[0].totalRevenue : 0;
+
+      res.send({
+        users,
+        menuItems,
+        orders,
+        revenue
+      })
+    })
+
+
+    // using aggrigate pipeline
+    app.get('/order-stats',async(req,res)=>{
+      
+    })
+
     // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
-    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
